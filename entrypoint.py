@@ -10,6 +10,9 @@ from solders.signature import Signature
 from solders.rpc.responses import (
     GetTransactionResp
 )
+
+import marketplace.templates
+
 endpoint = 'https://api.mainnet-beta.solana.com'
 
 import nfts
@@ -51,7 +54,7 @@ def process_transaction(tx_hash):
 
     if marketplace.MagicEdenTransaction.is_marketplace_tx(transaction):
         me = marketplace.MagicEdenTransaction(transaction)
-        print(f"Found a Magic Eden transaction of {me.instruction} for {me.price} SOL: {tx_hash}")
+        print(f"Found a Magic Eden transaction of {me.type} for {me.price} SOL: {tx_hash}")
 
 
 def main():
