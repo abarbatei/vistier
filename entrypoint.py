@@ -55,6 +55,8 @@ def process_transaction(tx_hash):
     if marketplace.MagicEdenTransaction.is_marketplace_tx(transaction):
         me = marketplace.MagicEdenTransaction(transaction)
         print(f"Found a Magic Eden transaction of {me.type} for {me.price} SOL: {tx_hash}")
+        print(f"\t - creators_fee: {me.creators_fee} SOL ({(me.creators_fee / me.price) * 100:.2f}%)")
+        print(f"\t - marketplace_fee: {me.marketplace_fee} SOL ({(me.marketplace_fee/me.price)*100:.2f}%)")
 
 
 def main():

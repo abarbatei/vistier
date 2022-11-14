@@ -25,6 +25,9 @@ class MarketplaceIds:
         ids = {
             "MEisE1HzehtrDpAAT8PnLHjpSSkRYakotTuJRPjTpo8",  # Magic Eden v1
             "M2mx93ekt1fmXSVkTrUL9xVFHkmME8HTUi5Cyc5aF7K",
+
+        }
+        fee_ids = {
             # https://dune.com/queries/825072/1445379
             "rFqFJ9g7TGBD8Ed7TPDnvGKZ5pWLPDyxLcvcH2eRCtt",  # platform fee account
             "2NZukH2TXpcuZP4htiuT8CFxcaQSWzkkR6kepSWnZ24Q"  # platform fee account
@@ -65,7 +68,9 @@ class MarketplaceIds:
     class OpenSea:
         ids = {
             "3o9d13qUvEuuauhFrVom1vuCzgNsJifeaBYDPquaT73Y",
-            "pAHAKoTJsAAe2ZcvTZUxoYzuygVAFAmbYmJYdWT886r",
+            "pAHAKoTJsAAe2ZcvTZUxoYzuygVAFAmbYmJYdWT886r"
+        }
+        fee_ids = {
             # https://dune.com/queries/825072/1445379
             "8mcjXbJ8j4VryYFNpcBCFS37Au8zVYU53WTVaruJWcKt"  # platform fee account
         }

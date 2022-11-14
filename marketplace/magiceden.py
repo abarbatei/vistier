@@ -1,8 +1,7 @@
 import json
 
 from solders.transaction_status import EncodedTransactionWithStatusMeta
-
-from marketplace.templates import MarketplaceInstructions, MarketplaceIds
+from .templates import MarketplaceInstructions, MarketplaceIds
 
 
 class MagicEdenTransaction:
@@ -14,7 +13,11 @@ class MagicEdenTransaction:
 
     def __init__(self, encoded_tx: EncodedTransactionWithStatusMeta):
         self.ids = MarketplaceIds.MagicEden.ids
+        self.fee_ids = MarketplaceIds.MagicEden.fee_ids
         self.encoded_tx = encoded_tx
+
+        self.marketplace_fee_lamports = 0
+        self.creators_fee_lamports = 0
 
         self.executed_instructions = None
         self._process_logs()
@@ -23,9 +26,19 @@ class MagicEdenTransaction:
         self.type = None
         self._determine_transaction_type()
 
+        self._determine_fees()
+
     @property
     def price(self):
         return self.price_lamports / 10 ** 9
+
+    @property
+    def marketplace_fee(self):
+        return self.marketplace_fee_lamports / 10 ** 9
+
+    @property
+    def creators_fee(self):
+        return self.creators_fee_lamports / 10 ** 9
 
     def is_sale(self):
         return self.type == MarketplaceInstructions.Sale
@@ -79,15 +92,11 @@ class MagicEdenTransaction:
             all_elements.append(element)
 
         self.executed_instructions = all_elements
-        # Magic EDEN tx fees rFqFJ9g7TGBD8Ed7TPDnvGKZ5pWLPDyxLcvcH2eRCtt
-        # https://dune.com/queries/825072/1445379 platform fee account
-
-        # get index of platform fee account addresses and see balance changes, before/after
 
     def _determine_transaction_type(self):
         has_execute_sell = False
         has_sell = False
-        price = -1
+        price = None
         for execution in self.executed_instructions:
             if execution['instruction'] == "ExecuteSale":
                 has_execute_sell = True
@@ -103,3 +112,31 @@ class MagicEdenTransaction:
             self.type = MarketplaceInstructions.List
         else:
             self.type = MarketplaceInstructions.Unknown
+
+    def _determine_fees(self):
+        pre_balances = self.encoded_tx.meta.pre_balances
+        post_balances = self.encoded_tx.meta.post_balances
+
+        marketplace_index = -1
+        treasury_index = -1
+
+        # get_nft_treasury
+        nft_treasury = "D6wZ5U9onMC578mrKMp5PZtfyc5262426qKsYJW7nT3p"
+
+        for index, account in enumerate(self.encoded_tx.transaction.message.account_keys):
+            if str(account) in self.fee_ids:
+                marketplace_index = index
+            if str(account) == nft_treasury:
+                treasury_index = index
+
+        if marketplace_index < 0:
+            print("Warning marketplace fee not found! either no fee or bug")
+        else:
+            self.marketplace_fee_lamports = post_balances[marketplace_index] - pre_balances[marketplace_index]
+
+        if treasury_index < 0:
+            print("Warning treasury fee not found! either no fee or bug")
+        else:
+            self.creators_fee_lamports = post_balances[treasury_index] - pre_balances[treasury_index]
+
+
