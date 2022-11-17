@@ -1,4 +1,5 @@
 import json
+from typing import List
 
 from solders.transaction_status import EncodedTransactionWithStatusMeta
 from .templates import MarketplaceInstructions, MarketplaceIds
@@ -26,8 +27,6 @@ class MagicEdenTransaction:
         self.type = None
         self._determine_transaction_type()
 
-        self._determine_fees()
-
     @property
     def price(self):
         return self.price_lamports / 10 ** 9
@@ -46,6 +45,7 @@ class MagicEdenTransaction:
     def _process_logs(self):
         """
         Good example here: https://solana.fm/tx/5viR6rqH2CEieDQMEk11JcNN18R5vnhg8iAL8zH4SwNFvx93ik243aTyYQRQUhAs8HnfrcfBRzrt3wFKtxCaTWWW?cluster=mainnet-qn1
+        Can probably get this information using https://docs.solana.fm/v3-api-reference/enriched-transfers
         """
         all_elements = list()
         element = {"logs": []}
@@ -56,7 +56,10 @@ class MagicEdenTransaction:
                     continue
                 log_msg = log_msg.replace("Program ", "")
 
-                if log_msg.startswith("log: "):
+                if log_msg.startswith("return: "):
+                    _, _, return_value = log_msg.split(" ")
+                    element['return'] = return_value
+                elif log_msg.startswith("log: "):
                     log_msg = log_msg.replace("log: ", "")
 
                     if log_msg.startswith("Instruction: "):
@@ -68,7 +71,7 @@ class MagicEdenTransaction:
                 else:
                     parts = log_msg.split(" ")
                     if parts[0] in ['11111111111111111111111111111111']:
-                        # skipping, polutes with no added value
+                        # skipping, pollutes with no added value and crashes code
                         continue
 
                     if len(parts) == 2:
@@ -84,6 +87,8 @@ class MagicEdenTransaction:
 
                         element = {"logs": [], 'depth': int(level[1:-1]), "program_id": program_id}
                     else:
+                        # print(f"Untreated cases: {log_msg}")
+                        # for example: TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 4645 of 463072 compute units
                         pass
 
             except Exception as e:
@@ -113,30 +118,21 @@ class MagicEdenTransaction:
         else:
             self.type = MarketplaceInstructions.Unknown
 
-    def _determine_fees(self):
+    def calculate_fees(self, treasuries_accounts: List[str]):
         pre_balances = self.encoded_tx.meta.pre_balances
         post_balances = self.encoded_tx.meta.post_balances
 
         marketplace_index = -1
         treasury_index = -1
 
-        # get_nft_treasury
-        nft_treasury = "D6wZ5U9onMC578mrKMp5PZtfyc5262426qKsYJW7nT3p"
-
         for index, account in enumerate(self.encoded_tx.transaction.message.account_keys):
             if str(account) in self.fee_ids:
                 marketplace_index = index
-            if str(account) == nft_treasury:
+            if str(account) in treasuries_accounts:
                 treasury_index = index
 
-        if marketplace_index < 0:
-            print("Warning marketplace fee not found! either no fee or bug")
-        else:
+        if marketplace_index > 0:
             self.marketplace_fee_lamports = post_balances[marketplace_index] - pre_balances[marketplace_index]
 
-        if treasury_index < 0:
-            print("Warning treasury fee not found! either no fee or bug")
-        else:
+        if treasury_index > 0:
             self.creators_fee_lamports = post_balances[treasury_index] - pre_balances[treasury_index]
-
-
