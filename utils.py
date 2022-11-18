@@ -1,7 +1,8 @@
+import json
 import logging
 import sys
 from colorama import Fore, Style, init as colorama_init
-
+from solders.rpc.responses import GetTransactionResp
 
 colorama_init()
 
@@ -48,3 +49,8 @@ def get_logger(name, file_name=None):
     logger.addHandler(stdout_handler)
 
     return logger
+
+
+def dump_transaction_data(tx_response: GetTransactionResp):
+    txs = json.loads(tx_response.to_json())
+    print(json.dumps(txs, indent=4))

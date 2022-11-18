@@ -8,11 +8,11 @@ from .templates import MarketplaceInstructions, MarketplaceIds
 class MagicEdenTransaction:
 
     @staticmethod
-    def is_marketplace_tx(encoded_tx: EncodedTransactionWithStatusMeta):
+    def is_marketplace_tx(encoded_tx: EncodedTransactionWithStatusMeta) -> bool:
         return len(set(str(a) for a in encoded_tx.transaction.message.account_keys).intersection(
             MarketplaceIds.MagicEden.ids)) > 0
 
-    def __init__(self, encoded_tx: EncodedTransactionWithStatusMeta):
+    def __init__(self, encoded_tx: EncodedTransactionWithStatusMeta) -> None:
         self.ids = MarketplaceIds.MagicEden.ids
         self.fee_ids = MarketplaceIds.MagicEden.fee_ids
         self.encoded_tx = encoded_tx
@@ -27,22 +27,31 @@ class MagicEdenTransaction:
         self.type = None
         self._determine_transaction_type()
 
+        self.sold_nft_mint_address = None
+        self.sold_nft_name = None
+        self.sell_signature = None
+        self.sell_block_time = None
+
     @property
-    def price(self):
+    def marketplace_name(self) -> str:
+        return "MagicEden"
+
+    @property
+    def price(self) -> int:
         return self.price_lamports / 10 ** 9
 
     @property
-    def marketplace_fee(self):
+    def marketplace_fee(self) -> int:
         return self.marketplace_fee_lamports / 10 ** 9
 
     @property
-    def creators_fee(self):
+    def creators_fee(self) -> int:
         return self.creators_fee_lamports / 10 ** 9
 
-    def is_sale(self):
+    def is_sale(self) -> bool:
         return self.type == MarketplaceInstructions.Sale
 
-    def _process_logs(self):
+    def _process_logs(self) -> None:
         """
         Good example here: https://solana.fm/tx/5viR6rqH2CEieDQMEk11JcNN18R5vnhg8iAL8zH4SwNFvx93ik243aTyYQRQUhAs8HnfrcfBRzrt3wFKtxCaTWWW?cluster=mainnet-qn1
         Can probably get this information using https://docs.solana.fm/v3-api-reference/enriched-transfers
@@ -98,7 +107,7 @@ class MagicEdenTransaction:
 
         self.executed_instructions = all_elements
 
-    def _determine_transaction_type(self):
+    def _determine_transaction_type(self) -> None:
         has_execute_sell = False
         has_sell = False
         price = None
@@ -108,7 +117,8 @@ class MagicEdenTransaction:
             if execution['instruction'] == "Sale":
                 has_sell = True
             if execution['instruction'] == "Buy":
-                price = execution['extra_data']['price']
+                # when a buy was attempted with not enough funds this makes extra_data unset
+                price = execution.get('extra_data', {}).get('price')
 
         self.price_lamports = price
         if has_execute_sell:
@@ -118,7 +128,7 @@ class MagicEdenTransaction:
         else:
             self.type = MarketplaceInstructions.Unknown
 
-    def calculate_fees(self, treasuries_accounts: List[str]):
+    def calculate_fees(self, treasuries_accounts: List[str]) -> None:
         pre_balances = self.encoded_tx.meta.pre_balances
         post_balances = self.encoded_tx.meta.post_balances
 
@@ -132,7 +142,7 @@ class MagicEdenTransaction:
                 treasury_index = index
 
         if marketplace_index > 0:
-            self.marketplace_fee_lamports = post_balances[marketplace_index] - pre_balances[marketplace_index]
+            self.marketplace_fee_lamports = int(post_balances[marketplace_index] - pre_balances[marketplace_index])
 
         if treasury_index > 0:
-            self.creators_fee_lamports = post_balances[treasury_index] - pre_balances[treasury_index]
+            self.creators_fee_lamports = int(post_balances[treasury_index] - pre_balances[treasury_index])

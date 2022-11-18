@@ -1,0 +1,23 @@
+{
+    "owner_address": "34SPGTEybdNiEJ4LKeZPYH9aZA3K9g1X7m8Eu1wWcco7",
+    "collection_creator_fee_percent_on_sale": 5.0,
+    "total_fees_on_owned_nfts": {
+        "creator": 1.794,
+        "marketplace": 0.0
+    },
+    "owned_nfts_count": 1,
+    "owned_nfts": [
+        "49dWNZfJVW5113AyKE2Tf5e2ArSE1DB6Z8vWV9AF6wjG"
+    ],
+    "transactions": [
+        {
+            "tx": "5pLiUXJAuMF7MLRVCL1UDCtu7otBtaDjhHtJ5h6rQncvEvxACgy4bvYrwEc2c63UJMR2fMSnZYW4WLdX5aEi3uVd",
+            "operation": "Sale",
+            "block_time": 1668805568,
+            "mint": "49dWNZfJVW5113AyKE2Tf5e2ArSE1DB6Z8vWV9AF6wjG",
+            "name": "Shadowy Super Coder #759",
+            "creator_fee_paid": 1.794,
+            "market_fee_paid": 0.0
+        }
+    ]
+}

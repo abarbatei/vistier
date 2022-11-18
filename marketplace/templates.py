@@ -38,32 +38,38 @@ class MarketplaceIds:
             "cndyAnrLdpjq1Ssp1z8xxDsB8dxe7u4HL5Nxi2K5WXZ",  # Metaplex NFT Candy Machine v1
             "cndy3Z4yapfJBmL3ShUp5exZKqR3z33thTzeNMm2gRZ"
         }
+        fee_ids = set()
 
     class Solanart:
         ids = {
           "CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz"
         }
+        fee_ids = set()
 
     class DigitalEyes:
         ids = {
             "A7p8451ktDCHq5yYaHczeLMYsjRsAkzc3hCXcSrwYHU7",  # DigitalEyes NFT Marketplace
             "7t8zVJtPCFAqog1DcnB6Ku1AVKtWfHkCiPi1cAvcJyVF"   # DigitalEyes Direct Sell
         }
+        fee_ids = set()
 
     class Solsea:
         ids = {
             "617jbWo616ggkDxvW1Le8pV38XLbVSyWY8ae6QUmGBAU"
         }
+        fee_ids = set()
 
     class AlphaArt:
         ids = {
             "HZaWndaNWHFDd9Dhk5pqUUtsmoBCqzb1MLu3NAh1VX6B"
         }
+        fee_ids = set()
 
     class ExchangeArt:
         ids = {
             "AmK5g2XcyptVLCFESBCJqoSfwV3znGoVYQnqEnaAZKWn"
         }
+        fee_ids = set()
 
     class OpenSea:
         ids = {
