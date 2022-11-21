@@ -1,8 +1,12 @@
 import json
 from typing import List
 
+from solders.rpc.responses import GetTransactionResp
 from solders.transaction_status import EncodedTransactionWithStatusMeta
 from .templates import MarketplaceInstructions, MarketplaceIds
+
+
+MAGIC_EDEN_ESCROW_WALLET = "1BWutmTvYPwDtmw9abTkS4Ssr8no61spGAvW1X6NDix"
 
 
 class MagicEdenTransaction:
@@ -12,25 +16,31 @@ class MagicEdenTransaction:
         return len(set(str(a) for a in encoded_tx.transaction.message.account_keys).intersection(
             MarketplaceIds.MagicEden.ids)) > 0
 
-    def __init__(self, encoded_tx: EncodedTransactionWithStatusMeta) -> None:
+    # def __init__(self, encoded_tx: EncodedTransactionWithStatusMeta) -> None:
+    def __init__(self, transaction_response: GetTransactionResp) -> None:
+        #
         self.ids = MarketplaceIds.MagicEden.ids
         self.fee_ids = MarketplaceIds.MagicEden.fee_ids
-        self.encoded_tx = encoded_tx
+        self.encoded_tx = transaction_response.value.transaction
 
         self.marketplace_fee_lamports = 0
         self.creators_fee_lamports = 0
-
-        self.executed_instructions = None
-        self._process_logs()
-
         self.price_lamports = None
         self.type = None
+        self.executed_instructions = None
+        self.sold_nft_name = None
+        self.nft_mint = None
+
+        self.sell_signature = self.encoded_tx.transaction.signatures[0]
+        self.sell_block_time = transaction_response.value.block_time
+
+        self._process_logs()
         self._determine_transaction_type()
 
-        self.sold_nft_mint_address = None
-        self.sold_nft_name = None
-        self.sell_signature = None
-        self.sell_block_time = None
+        if self.is_sale() or self.is_listing():
+            self.seller_address = None
+            self.buyer_address = None
+            self._set_participants()
 
     @property
     def marketplace_name(self) -> str:
@@ -50,6 +60,9 @@ class MagicEdenTransaction:
 
     def is_sale(self) -> bool:
         return self.type == MarketplaceInstructions.Sale
+
+    def is_listing(self) -> bool:
+        return self.type == MarketplaceInstructions.Listing
 
     def _process_logs(self) -> None:
         """
@@ -108,23 +121,29 @@ class MagicEdenTransaction:
         self.executed_instructions = all_elements
 
     def _determine_transaction_type(self) -> None:
+
         has_execute_sell = False
         has_sell = False
         price = None
         for execution in self.executed_instructions:
             if execution['instruction'] == "ExecuteSale":
                 has_execute_sell = True
-            if execution['instruction'] == "Sale":
+            if execution['instruction'] == "Sell":
                 has_sell = True
             if execution['instruction'] == "Buy":
                 # when a buy was attempted with not enough funds this makes extra_data unset
                 price = execution.get('extra_data', {}).get('price')
 
         self.price_lamports = price
+
         if has_execute_sell:
             self.type = MarketplaceInstructions.Sale
         elif has_sell:
-            self.type = MarketplaceInstructions.List
+            if len(self.executed_instructions) == 2:
+                ins_0 = self.executed_instructions[0]
+                ins_1 = self.executed_instructions[1]
+                if ins_0['instruction'] == "Sell" and ins_1['instruction'] == "SetAuthority":
+                    self.type = MarketplaceInstructions.Listing
         else:
             self.type = MarketplaceInstructions.Unknown
 
@@ -146,3 +165,29 @@ class MagicEdenTransaction:
 
         if treasury_index > 0:
             self.creators_fee_lamports = int(post_balances[treasury_index] - pre_balances[treasury_index])
+
+    def _set_participants(self):
+        pre_token_balances = self.encoded_tx.meta.pre_token_balances
+        post_token_balances = self.encoded_tx.meta.post_token_balances
+        if len(pre_token_balances) != 1 or len(post_token_balances) != 1:
+            print("Can not determine participants in exchange")
+            return
+        self.nft_mint = pre_token_balances[0].mint
+        self.seller_address = pre_token_balances[0].owner
+        self.buyer_address = post_token_balances[0].owner
+
+    def to_dict(self):
+        return {
+            'signature': str(self.sell_signature),
+            'block_time': self.sell_block_time,
+            "mint": str(self.nft_mint),
+            'name': self.sold_nft_name,
+            'source': self.marketplace_name,
+            'price': self.price_lamports,
+            'creator_fee_paid': self.creators_fee_lamports,
+            'market_fee_paid': self.marketplace_fee_lamports,
+            'seller': str(self.seller_address),
+            'buyer': str(self.buyer_address),
+            'type': self.type
+        }
+

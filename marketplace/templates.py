@@ -6,7 +6,7 @@ from solana.publickey import PublicKey
 
 
 class MarketplaceInstructions:
-    List = "List"
+    Listing = "List"
     Sale = "Sale"
     Buy = "Buy"
     Deposit = "Deposit"
@@ -32,6 +32,9 @@ class MarketplaceIds:
             "rFqFJ9g7TGBD8Ed7TPDnvGKZ5pWLPDyxLcvcH2eRCtt",  # platform fee account
             "2NZukH2TXpcuZP4htiuT8CFxcaQSWzkkR6kepSWnZ24Q"  # platform fee account
         }
+        escrow_ids = {
+            "1BWutmTvYPwDtmw9abTkS4Ssr8no61spGAvW1X6NDix"
+        }
 
     class Metalplex:
         ids = {
@@ -39,12 +42,14 @@ class MarketplaceIds:
             "cndy3Z4yapfJBmL3ShUp5exZKqR3z33thTzeNMm2gRZ"
         }
         fee_ids = set()
+        escrow_ids = set()
 
     class Solanart:
         ids = {
           "CJsLwbP1iu5DuUikHEJnLfANgKy6stB2uFgvBBHoyxwz"
         }
         fee_ids = set()
+        escrow_ids = set()
 
     class DigitalEyes:
         ids = {
@@ -52,24 +57,28 @@ class MarketplaceIds:
             "7t8zVJtPCFAqog1DcnB6Ku1AVKtWfHkCiPi1cAvcJyVF"   # DigitalEyes Direct Sell
         }
         fee_ids = set()
+        escrow_ids = set()
 
     class Solsea:
         ids = {
             "617jbWo616ggkDxvW1Le8pV38XLbVSyWY8ae6QUmGBAU"
         }
         fee_ids = set()
+        escrow_ids = set()
 
     class AlphaArt:
         ids = {
             "HZaWndaNWHFDd9Dhk5pqUUtsmoBCqzb1MLu3NAh1VX6B"
         }
         fee_ids = set()
+        escrow_ids = set()
 
     class ExchangeArt:
         ids = {
             "AmK5g2XcyptVLCFESBCJqoSfwV3znGoVYQnqEnaAZKWn"
         }
         fee_ids = set()
+        escrow_ids = set()
 
     class OpenSea:
         ids = {
@@ -80,6 +89,7 @@ class MarketplaceIds:
             # https://dune.com/queries/825072/1445379
             "8mcjXbJ8j4VryYFNpcBCFS37Au8zVYU53WTVaruJWcKt"  # platform fee account
         }
+        escrow_ids = set()
 
 
 marketplaces_ids = reduce(set.union, [cls_attribute.ids for cls_attribute in MarketplaceIds.__dict__.values()
@@ -95,3 +105,19 @@ SYSTEM_PROGRAM_ID = PublicKey('11111111111111111111111111111111')
 SYSVAR_RENT_PUBKEY = PublicKey('SysvarRent111111111111111111111111111111111')
 ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID = PublicKey('ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL')
 TOKEN_PROGRAM_ID = PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA')
+
+
+def empty_marketplace_data_dict():
+    return {
+        'signature': None,
+        'block_time': None,
+        "mint": None,
+        'name': None,
+        'source': None,
+        'price': None,
+        'creator_fee_paid': None,
+        'market_fee_paid': None,
+        'seller': None,
+        'buyer': None,
+        'type': None,
+    }

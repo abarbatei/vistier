@@ -5,6 +5,7 @@ import base64
 
 from typing import List
 
+import solana
 from solana.rpc.api import PublicKey
 from solana.rpc.types import TokenAccountOpts
 
@@ -12,6 +13,7 @@ from solana.rpc.types import TokenAccountOpts
 METADATA_PROGRAM_ID = PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
 
 
+# taken from Metaplex python library
 def unpack_metadata_account(data: bytes) -> dict:
     assert(data[0] == 4)
     i = 1
@@ -54,7 +56,7 @@ def unpack_metadata_account(data: bytes) -> dict:
     i += 1
     is_mutable = bool(data[i])
     metadata = {
-        "update_authority": source_account,
+        "update_authority": source_account.decode("utf8"),
         "mint": mint_account.decode("utf8"),
         "data": {
             "name": bytes(name).decode("utf-8").strip("\x00"),
@@ -113,18 +115,19 @@ def get_metadata(solana_client, mint_address: str) -> dict:
             return unpack_metadata_account(data)
 
 
-def get_tokens_held_by_address(solana_client, public_key: PublicKey):
+def get_tokens_held_by_address(solana_client: solana.rpc.api.Client, public_key: PublicKey):
     opts = TokenAccountOpts(program_id=PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
     result = solana_client.get_token_accounts_by_owner_json_parsed(public_key, opts)
     return json.loads(result.to_json())
 
 
-def find_nft(solana_client, wallet_address: str, collection_candy_machin_ids: List[str]) -> List[dict]:
+def find_nft(solana_client: solana.rpc.api.Client,
+             wallet_address: str,
+             collection_candy_machin_ids: List[str]) -> List[dict]:
 
     opts = TokenAccountOpts(program_id=PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
     result = solana_client.get_token_accounts_by_owner_json_parsed(PublicKey(wallet_address), opts)
     payload = json.loads(result.to_json())
-
     possible_nfts = list()
 
     for token_data in payload['result']['value']:
@@ -147,7 +150,7 @@ def find_nft(solana_client, wallet_address: str, collection_candy_machin_ids: Li
 
         creators = metadata['data']['creators']
         verified = metadata['data']['verified']
-        # print(creators)
+
         if not verified or verified[0] != 1:
             # NFT collection is not verified by indicated creator wallet, can be a scam!
             continue
