@@ -13,17 +13,17 @@ def index():
 
 
 @app.route('/wallet-status', methods=['GET'])
-def wallet_status():
+async def wallet_status():
     contract_address = request.args.get('address')
     candy_machine_ids = request.args.getlist('cmid')
-    response = api_entrypoint(contract_address, candy_machine_ids)
+    response = await api_entrypoint(contract_address, candy_machine_ids)
     return response, 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 
 @app.route('/marketplace-signature/<signature>', methods=['GET'])
-def marketplace_signature(signature):
+async def marketplace_signature(signature):
     collection_treasuries = request.args.getlist('treasury')
-    response = api_process_signature(signature, collection_treasuries)
+    response = await api_process_signature(signature, collection_treasuries)
     return response, 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 

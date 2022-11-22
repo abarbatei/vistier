@@ -4,5 +4,8 @@ requests==2.28.1
 solders~=0.10.0
 colorama~=0.4.4
 python-dotenv~=0.21.0
-discord
+discord~=2.1.0
 py-cord
+asgiref
+aioflask
+Flask~=2.1.3
