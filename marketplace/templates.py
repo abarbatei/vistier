@@ -1,6 +1,5 @@
 import inspect
 from functools import reduce
-from typing import List, Union
 
 from solana.publickey import PublicKey
 
@@ -96,7 +95,7 @@ marketplaces_ids = reduce(set.union, [cls_attribute.ids for cls_attribute in Mar
                                       if inspect.isclass(cls_attribute)])
 
 
-def is_marketplace(account_keys: List[Union[PublicKey, PublicKey]]):
+def is_marketplace(account_keys):
     return len(set(str(a) for a in account_keys).intersection(marketplaces_ids)) > 0
 
 
