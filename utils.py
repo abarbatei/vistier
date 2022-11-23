@@ -1,9 +1,12 @@
 import json
 import logging
+import os
 import sys
 from colorama import Fore, Style, init as colorama_init
 from solders.rpc.responses import GetTransactionResp
+from dotenv import load_dotenv
 
+load_dotenv()
 colorama_init()
 
 
@@ -38,6 +41,13 @@ def get_logger(name):
     stdout_handler.setLevel(logging.INFO)
     stdout_handler.setFormatter(CustomFormatter())
 
+    if os.environ.get("DEBUG_FILE_LOG", "false") == "true":
+        formatter = logging.Formatter('%(asctime)s [%(levelname)7s][%(name)s]: %(message)s')
+        file_handler = logging.FileHandler("debug_log.txt", encoding='utf8')
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
     logger.addHandler(stdout_handler)
 
     return logger
@@ -46,3 +56,9 @@ def get_logger(name):
 def dump_transaction_data(tx_response: GetTransactionResp):
     txs = json.loads(tx_response.to_json())
     print(json.dumps(txs, indent=4))
+
+
+def split(list_, parts_cnt):
+    # https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length
+    k, m = divmod(len(list_), parts_cnt)
+    return (list_[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(parts_cnt))

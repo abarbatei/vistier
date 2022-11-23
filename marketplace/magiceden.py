@@ -4,9 +4,10 @@ from typing import List
 from solders.rpc.responses import GetTransactionResp
 from solders.transaction_status import EncodedTransactionWithStatusMeta
 from .templates import MarketplaceInstructions, MarketplaceIds
-
+from utils import get_logger
 
 MAGIC_EDEN_ESCROW_WALLET = "1BWutmTvYPwDtmw9abTkS4Ssr8no61spGAvW1X6NDix"
+logger = get_logger("VistierAPI")
 
 
 class MagicEdenTransaction:
@@ -64,6 +65,9 @@ class MagicEdenTransaction:
     def is_listing(self) -> bool:
         return self.type == MarketplaceInstructions.Listing
 
+    def is_escrow(self) -> bool:
+        return self.is_listing()
+
     def _process_logs(self) -> None:
         """
         Good example here: https://solana.fm/tx/5viR6rqH2CEieDQMEk11JcNN18R5vnhg8iAL8zH4SwNFvx93ik243aTyYQRQUhAs8HnfrcfBRzrt3wFKtxCaTWWW?cluster=mainnet-qn1
@@ -74,7 +78,7 @@ class MagicEdenTransaction:
         for log_msg in self.encoded_tx.meta.log_messages:
             try:
                 if not log_msg.startswith("Program "):
-                    print(f"Unknown log message case: {log_msg}, skipping")
+                    logger.warning(f"Unknown log message case: {log_msg}, skipping")
                     continue
                 log_msg = log_msg.replace("Program ", "")
 
@@ -114,7 +118,7 @@ class MagicEdenTransaction:
                         pass
 
             except Exception as e:
-                print(f"exception when processing line: {log_msg}:\n{e.args}")
+                logger.error(f"exception when processing line: {log_msg}:\n{e.args}")
         if element.get("instruction"):
             all_elements.append(element)
 
@@ -170,7 +174,7 @@ class MagicEdenTransaction:
         pre_token_balances = self.encoded_tx.meta.pre_token_balances
         post_token_balances = self.encoded_tx.meta.post_token_balances
         if len(pre_token_balances) != 1 or len(post_token_balances) != 1:
-            print("Can not determine participants in exchange")
+            logger.warning("Can not determine participants in exchange")
             return
         self.nft_mint = pre_token_balances[0].mint
         self.seller_address = pre_token_balances[0].owner
