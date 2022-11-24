@@ -1,21 +1,18 @@
 import json
 import asyncio
-import os
+import platform
 
 from typing import List
 
 from solders.signature import Signature
-from dotenv import load_dotenv
-import platform
 
-import nfts
-import marketplace
-from clients import get_client, get_async_client
-from escrows import get_escrow_nfts
-from sells import get_sale, get_nft_last_sale_batch
-from utils import get_logger
+from . import nfts
+from . import marketplace
+from .clients import get_client, get_async_client
+from .escrows import get_escrow_nfts
+from .sells import get_sale, get_nft_last_sale_batch
+from .utils import get_logger
 
-load_dotenv()
 
 logger = get_logger("VistierAPI")
 
@@ -23,15 +20,7 @@ if platform.system() == 'Windows':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-async def api_entrypoint(wallet_address: str, collection_candy_machine_ids: List[str]) -> dict:
-    escrow_tx_workers = int(os.environ['ESCROW_TX_PROCESSING_WORKERS'])
-    escrow_tx_to_process = int(os.environ['ESCROW_TX_TO_PROCESS'])
-    escrow_max_tx_to_process = int(os.environ['ESCROW_MAX_TX_TO_PROCESS'])
-
-    sales_tx_workers = int(os.environ['SALES_TX_PROCESSING_WORKERS'])
-    sales_tx_to_process = int(os.environ['SALES_TX_TO_PROCESS_PER_NFT'])
-    sales_max_tx_to_process = int(os.environ['SALES_NFT_MAX_TX_TO_PROCESS'])
-    sales_max_nft_to_inspect = int(os.environ['SALES_NFT_MAX_TO_INSPECT'])
+async def api_entrypoint(settings: dict, wallet_address: str, collection_candy_machine_ids: List[str]) -> dict:
 
     solana_client = get_client()
 
@@ -54,9 +43,9 @@ async def api_entrypoint(wallet_address: str, collection_candy_machine_ids: List
 
     escrowed_nfts = await get_escrow_nfts(solana_client,
                                           wallet_address,
-                                          worker_count=escrow_tx_workers,
-                                          tx_cnt_to_check=escrow_tx_to_process,
-                                          max_tx_cnt_to_check=escrow_max_tx_to_process)
+                                          worker_count=settings['escrow_tx_workers'],
+                                          tx_cnt_to_check=settings['escrow_tx_to_process'],
+                                          max_tx_cnt_to_check=settings['escrow_max_tx_to_process'])
     logger.info(f"Wallet has {len(escrowed_nfts)} escrowed NFTs")
     owned_nfts += [nfts.get_metadata(solana_client, mint_address) for mint_address in escrowed_nfts]
 
@@ -85,10 +74,10 @@ async def api_entrypoint(wallet_address: str, collection_candy_machine_ids: List
 
     transactions = await get_nft_last_sale_batch(output_response['owned_nfts'],
                                                  nft_treasuries,
-                                                 worker_count=sales_tx_workers,
-                                                 tx_cnt_to_check_=sales_tx_to_process,
-                                                 max_tx_cnt_to_check=sales_max_tx_to_process,
-                                                 max_nfts_to_process=sales_max_nft_to_inspect)
+                                                 worker_count=settings['sales_tx_workers'],
+                                                 tx_cnt_to_check_=settings['sales_tx_to_process'],
+                                                 max_tx_cnt_to_check=settings['sales_max_tx_to_process'],
+                                                 max_nfts_to_process=settings['sales_max_nft_to_inspect'])
     for transaction in transactions:
 
         logger.info(f"Found a {transaction.marketplace_name} transaction of {transaction.type} "

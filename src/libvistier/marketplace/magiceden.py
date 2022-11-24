@@ -4,7 +4,7 @@ from typing import List
 from solders.rpc.responses import GetTransactionResp
 from solders.transaction_status import EncodedTransactionWithStatusMeta
 from .templates import MarketplaceInstructions, MarketplaceIds
-from utils import get_logger
+from ..utils import get_logger
 
 MAGIC_EDEN_ESCROW_WALLET = "1BWutmTvYPwDtmw9abTkS4Ssr8no61spGAvW1X6NDix"
 logger = get_logger("VistierAPI")

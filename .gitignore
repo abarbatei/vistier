@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 *.bat
 .idea
+debug_log.txt

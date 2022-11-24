@@ -1,0 +1,24 @@
+# how many transactions to process, backwards, looking for escrow TXs
+ESCROW_TX_TO_PROCESS: 300
+
+# the number of workers processing the above ESCROW_TX_TO_PROCESS, each being given an equal share
+ESCROW_TX_PROCESSING_WORKERS: 5
+
+# an extra safe, hard limit of how many TX to allow. It is a limiter to the above one
+ESCROW_MAX_TX_TO_PROCESS: 1000
+
+# how many transactions to process, backwards, looking for sales TXs per NFT (a wallet can hold many NFTs)
+SALES_TX_TO_PROCESS_PER_NFT: 150
+
+# the number of workers processing the above SALES_TX_TO_PROCESS_PER_NFT, each being given an equal share
+SALES_TX_PROCESSING_WORKERS: 10
+
+# an extra safe, hard limit of how many TX to allow. It is a limiter to the above SALES_TX_TO_PROCESS_PER_NFT
+SALES_NFT_MAX_TX_TO_PROCESS: 1000
+
+# how many NFTs belonging to the same collection to be, at max, processed. If there are more than this number
+# of NFTs, although they will not be processed they are noted as belonging to the wallet
+SALES_NFT_MAX_TO_INSPECT: 10
+
+# a separate, debug configuration. If set to true, will also save all stdout messages in a debug_log.txt file
+DEBUG_LOG_FILE: false

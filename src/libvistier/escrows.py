@@ -5,9 +5,9 @@ from datetime import datetime
 from solana.publickey import PublicKey
 from solders.rpc.responses import GetTransactionResp
 
-import marketplace
-from clients import get_async_client
-from utils import split, get_logger
+from . import marketplace
+from .clients import get_async_client
+from .utils import split, get_logger
 
 logger = get_logger("VistierAPI")
 
