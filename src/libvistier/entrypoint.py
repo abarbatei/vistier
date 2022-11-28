@@ -38,7 +38,7 @@ async def api_entrypoint(settings: dict, wallet_address: str, collection_candy_m
 
     logger.info(f"Processing wallet {wallet_address} with regards to collection CM Ids: {collection_candy_machine_ids}")
 
-    owned_nfts = nfts.find_nft(solana_client, wallet_address, collection_candy_machine_ids)
+    owned_nfts = nfts.find_wallet_nfts(solana_client, wallet_address, collection_candy_machine_ids)
     logger.info(f"Wallet {wallet_address} has {len(owned_nfts)} NFTs from our collection:")
 
     escrowed_nfts = await get_escrow_nfts(solana_client,
@@ -46,8 +46,14 @@ async def api_entrypoint(settings: dict, wallet_address: str, collection_candy_m
                                           worker_count=settings['escrow_tx_workers'],
                                           tx_cnt_to_check=settings['escrow_tx_to_process'],
                                           max_tx_cnt_to_check=settings['escrow_max_tx_to_process'])
-    logger.info(f"Wallet has {len(escrowed_nfts)} escrowed NFTs")
-    owned_nfts += [nfts.get_metadata(solana_client, mint_address) for mint_address in escrowed_nfts]
+
+    targeted_collection_nfts = nfts.find_nfts_of_collection(solana_client,
+                                     mint_addresses=escrowed_nfts,
+                                     collection_candy_machin_ids=collection_candy_machine_ids)
+
+    logger.info(f"Wallet has {len(escrowed_nfts)} escrowed NFTs, out of which {len(targeted_collection_nfts)} "
+                f"are the targeted collection")
+    owned_nfts += targeted_collection_nfts
 
     if not owned_nfts:
         logger.info("owner has no NFTs belonging to the targeted collection, exiting")

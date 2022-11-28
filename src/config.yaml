@@ -1,5 +1,5 @@
 # how many transactions to process, backwards, looking for escrow TXs
-ESCROW_TX_TO_PROCESS: 300
+ESCROW_TX_TO_PROCESS: 250
 
 # the number of workers processing the above ESCROW_TX_TO_PROCESS, each being given an equal share
 ESCROW_TX_PROCESSING_WORKERS: 5
@@ -21,4 +21,4 @@ SALES_NFT_MAX_TX_TO_PROCESS: 1000
 SALES_NFT_MAX_TO_INSPECT: 10
 
 # a separate, debug configuration. If set to true, will also save all stdout messages in a debug_log.txt file
-DEBUG_LOG_FILE: false
+DEBUG_LOG_FILE: true

@@ -42,7 +42,7 @@ def get_logger(name):
     stdout_handler.setLevel(logging.INFO)
     stdout_handler.setFormatter(CustomFormatter())
 
-    if os.environ.get("DEBUG_FILE_LOG", "false") == "true":
+    if os.environ.get("DEBUG_LOG_FILE", "false") == "true":
         formatter = logging.Formatter('%(asctime)s [%(levelname)7s][%(name)s]: %(message)s')
         file_handler = logging.FileHandler("debug_log.txt", encoding='utf8')
         file_handler.setLevel(logging.DEBUG)

@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 import os
 import yaml
 from flask import Flask, request
 from dotenv import load_dotenv
+from waitress import serve
 
 from libvistier.entrypoint import api_entrypoint, api_process_signature
 
@@ -13,6 +15,8 @@ def init_settings():
     cfg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.yaml")
     with open(cfg_path, "r") as input_stream:
         yaml_configs = yaml.safe_load(input_stream)
+
+    os.environ['DEBUG_LOG_FILE'] = "true" if yaml_configs['DEBUG_LOG_FILE'] else "false"
     return {
         "escrow_tx_workers": yaml_configs['ESCROW_TX_PROCESSING_WORKERS'],
         "escrow_tx_to_process": yaml_configs['ESCROW_TX_TO_PROCESS'],
@@ -44,4 +48,7 @@ async def marketplace_signature(signature):
 
 
 if __name__ == '__main__':
-    app.run()
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('DEBUG', False)
+    # app.run(debug=debug, host='0.0.0.0', port=port)
+    serve(app, host='0.0.0.0', port=port)

@@ -121,30 +121,13 @@ def get_tokens_held_by_address(solana_client: solana.rpc.api.Client, public_key:
     return json.loads(result.to_json())
 
 
-def find_nft(solana_client: solana.rpc.api.Client,
-             wallet_address: str,
-             collection_candy_machin_ids: List[str]) -> List[dict]:
-
-    opts = TokenAccountOpts(program_id=PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
-    result = solana_client.get_token_accounts_by_owner_json_parsed(PublicKey(wallet_address), opts)
-    payload = json.loads(result.to_json())
-    possible_nfts = list()
-
-    for token_data in payload['result']['value']:
-
-        # https://docs.metaplex.com/programs/token-metadata/overview
-        if token_data['account']['data']['parsed']['info']['tokenAmount']['decimals'] != 0:
-            continue
-
-        if token_data['account']['data']['parsed']['info']['tokenAmount']['amount'] != '1':
-            continue
-
-        possible_nfts.append(token_data)
-
+def find_nfts_of_collection(solana_client: solana.rpc.api.Client,
+                            mint_addresses: list,
+                            collection_candy_machin_ids: List[str]) -> List[dict]:
     nfts = list()
 
-    for token_data in possible_nfts:
-        metadata = get_metadata(solana_client, token_data['account']['data']['parsed']['info']['mint'])
+    for nft_mint_address in mint_addresses:
+        metadata = get_metadata(solana_client, nft_mint_address)
         if not metadata or not metadata.get('data'):
             continue
 
@@ -162,3 +145,31 @@ def find_nft(solana_client: solana.rpc.api.Client,
             nfts.append(metadata)
 
     return nfts
+
+
+def find_wallet_nfts(solana_client: solana.rpc.api.Client,
+                     wallet_address: str,
+                     collection_candy_machin_ids: List[str]) -> List[dict]:
+
+    opts = TokenAccountOpts(program_id=PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
+    result = solana_client.get_token_accounts_by_owner_json_parsed(PublicKey(wallet_address), opts)
+    payload = json.loads(result.to_json())
+    possible_nfts = list()
+
+    for token_data in payload['result']['value']:
+
+        # https://docs.metaplex.com/programs/token-metadata/overview
+        if token_data['account']['data']['parsed']['info']['tokenAmount']['decimals'] != 0:
+            continue
+
+        if token_data['account']['data']['parsed']['info']['tokenAmount']['amount'] != '1':
+            continue
+
+        possible_nfts.append(token_data)
+
+    return find_nfts_of_collection(
+        solana_client,
+        [token_data['account']['data']['parsed']['info']['mint'] for token_data in possible_nfts],
+        collection_candy_machin_ids
+    )
+

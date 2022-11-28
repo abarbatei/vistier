@@ -4,3 +4,4 @@ asgiref==3.5.2
 aioflask==0.4.0
 Flask==2.2.2
 PyYAML==6.0
+waitress==2.1.2
