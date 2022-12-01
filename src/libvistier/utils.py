@@ -5,10 +5,10 @@ import logging
 
 from colorama import Fore, Style, init as colorama_init
 from solders.rpc.responses import GetTransactionResp
-from dotenv import load_dotenv
 
-load_dotenv()
 colorama_init()
+
+DEBUG_LOG_FILE = False
 
 
 class CustomFormatter(logging.Formatter):
@@ -42,7 +42,7 @@ def get_logger(name):
     stdout_handler.setLevel(logging.INFO)
     stdout_handler.setFormatter(CustomFormatter())
 
-    if os.environ.get("DEBUG_LOG_FILE", "false") == "true":
+    if DEBUG_LOG_FILE:
         formatter = logging.Formatter('%(asctime)s [%(levelname)7s][%(name)s]: %(message)s')
         file_handler = logging.FileHandler("debug_log.txt", encoding='utf8')
         file_handler.setLevel(logging.DEBUG)

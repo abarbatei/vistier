@@ -1,16 +1,16 @@
-import json
 import asyncio
 import platform
 
 from typing import List
 
+from solders.rpc.responses import GetTransactionResp
 from solders.signature import Signature
 
 from . import nfts
 from . import marketplace
 from .clients import get_client, get_async_client
 from .escrows import get_escrow_nfts
-from .sells import get_sale, get_nft_last_sale_batch
+from .sells import get_nft_last_sale_batch
 from .utils import get_logger
 
 
@@ -20,7 +20,9 @@ if platform.system() == 'Windows':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-async def api_entrypoint(settings: dict, wallet_address: str, collection_candy_machine_ids: List[str]) -> dict:
+async def api_search_wallet_for_nfts(settings: dict,
+                                     wallet_address: str,
+                                     collection_candy_machine_ids: List[str]) -> dict:
 
     solana_client = get_client()
 
@@ -29,10 +31,11 @@ async def api_entrypoint(settings: dict, wallet_address: str, collection_candy_m
         "creator_fee_percent_on_sale": None,
         "fees_on_owned_nfts": {
             "creator": 0,
-            "marketplace": 0
+            "marketplace": 0,
+            "total": 0
         },
         'owned_nfts_count': 0,
-        "owned_nfts": list(),
+        "owned_nfts": dict(),
         "transactions": list()
     }
 
@@ -48,8 +51,8 @@ async def api_entrypoint(settings: dict, wallet_address: str, collection_candy_m
                                           max_tx_cnt_to_check=settings['escrow_max_tx_to_process'])
 
     targeted_collection_nfts = nfts.find_nfts_of_collection(solana_client,
-                                     mint_addresses=escrowed_nfts,
-                                     collection_candy_machin_ids=collection_candy_machine_ids)
+                                                            mint_addresses=escrowed_nfts,
+                                                            collection_candy_machin_ids=collection_candy_machine_ids)
 
     logger.info(f"Wallet has {len(escrowed_nfts)} escrowed NFTs, out of which {len(targeted_collection_nfts)} "
                 f"are the targeted collection")
@@ -103,11 +106,28 @@ async def api_entrypoint(settings: dict, wallet_address: str, collection_candy_m
     return output_response
 
 
+async def get_market_tx(solana_client, tx_sig: Signature, nft_treasuries: List[str]):
+    tx_response: GetTransactionResp = await solana_client.get_transaction(tx_sig=tx_sig)
+    if not tx_response.value:
+        return
+    transaction = tx_response.value.transaction
+
+    if not marketplace.is_marketplace(transaction.transaction.message.account_keys):
+        return
+
+    if marketplace.MagicEdenTransaction.is_marketplace_tx(transaction):
+        marketplace_transaction = marketplace.MagicEdenTransaction(tx_response)
+        if marketplace_transaction.is_sale():
+            marketplace_transaction.calculate_fees(nft_treasuries)
+            return marketplace_transaction
+        return marketplace_transaction
+    return
+
+
 async def api_process_signature(sig: str, nft_treasuries: List[str]):
     solana_client = get_client()
     solana_async_client = await get_async_client()
-
-    result = await get_sale(solana_async_client, Signature.from_string(sig), nft_treasuries)
+    result = await get_market_tx(solana_async_client, Signature.from_string(sig), nft_treasuries)
     if result:
         nft_metadata = nfts.get_metadata(solana_client, result.nft_mint)
         result.sold_nft_name = nft_metadata['data']['name']
@@ -116,27 +136,3 @@ async def api_process_signature(sig: str, nft_treasuries: List[str]):
     response['type'] = "Unknown"
     response['signature'] = sig
     return response
-
-
-def main():
-    wallet_address = "6f7evqx9wtZbsK5T5GLwWAz7PYf2dJ2CabfiuoyxKjEw"
-    collection_candy_machine_ids = [  # this is an example with DeGods
-        "9MynErYQ5Qi6obp4YwwdoDmXkZ1hYVtPUqYmJJ3rZ9Kn", "8RMqBV79p8sb51nMaKMWR94XKjUvD2kuUSAkpEJTmxyx"
-    ]
-
-    # wallet_address = "34SPGTEybdNiEJ4LKeZPYH9aZA3K9g1X7m8Eu1wWcco7"
-    # collection_candy_machine_ids = ["71ghWqucipW661X4ht61qvmc3xKQGMBGZxwSDmZrYQmf"]  # this is for SSC
-
-    wallet_address = "djq8NNpWTEDGFZyu58euBSQuqAU8ta4exSffrPqQHNi"
-    collection_candy_machine_ids = ["yootn8Kf22CQczC732psp7qEqxwPGSDQCFZHkzoXp25"]  # this is for yoot
-
-    wallet_address = "DPFjrR6ybkyoxrcETdVCw7r3ftSMWiZXZds6rrXd1QfJ"
-    collection_candy_machine_ids = ["yootn8Kf22CQczC732psp7qEqxwPGSDQCFZHkzoXp25"]  # this is for yoot
-
-    response = api_entrypoint(wallet_address, collection_candy_machine_ids)
-
-    print(json.dumps(response, indent=4))
-
-
-if __name__ == "__main__":
-    main()

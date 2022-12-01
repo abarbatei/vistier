@@ -17,7 +17,6 @@ class MagicEdenTransaction:
         return len(set(str(a) for a in encoded_tx.transaction.message.account_keys).intersection(
             MarketplaceIds.MagicEden.ids)) > 0
 
-    # def __init__(self, encoded_tx: EncodedTransactionWithStatusMeta) -> None:
     def __init__(self, transaction_response: GetTransactionResp) -> None:
         #
         self.ids = MarketplaceIds.MagicEden.ids
@@ -70,8 +69,8 @@ class MagicEdenTransaction:
 
     def _process_logs(self) -> None:
         """
-        Good example here: https://solana.fm/tx/5viR6rqH2CEieDQMEk11JcNN18R5vnhg8iAL8zH4SwNFvx93ik243aTyYQRQUhAs8HnfrcfBRzrt3wFKtxCaTWWW?cluster=mainnet-qn1
         Can probably get this information using https://docs.solana.fm/v3-api-reference/enriched-transfers
+        or Magic Eden API
         """
         all_elements = list()
         element = {"logs": []}
@@ -130,23 +129,22 @@ class MagicEdenTransaction:
         has_sell = False
         price = None
         for execution in self.executed_instructions:
+            # in some cases the price is printed in a Sell in others in a CloseAccount
+            price = execution.get('extra_data', {}).get('price')
+
             if execution['instruction'] == "ExecuteSale":
                 has_execute_sell = True
             if execution['instruction'] == "Sell":
                 has_sell = True
-            if execution['instruction'] == "Buy":
-                # when a buy was attempted with not enough funds this makes extra_data unset
-                price = execution.get('extra_data', {}).get('price')
 
         self.price_lamports = price
 
         if has_execute_sell:
             self.type = MarketplaceInstructions.Sale
         elif has_sell:
-            if len(self.executed_instructions) == 2:
+            if 1 <= len(self.executed_instructions) <= 2:
                 ins_0 = self.executed_instructions[0]
-                ins_1 = self.executed_instructions[1]
-                if ins_0['instruction'] == "Sell" and ins_1['instruction'] == "SetAuthority":
+                if ins_0['instruction'] == "Sell":
                     self.type = MarketplaceInstructions.Listing
         else:
             self.type = MarketplaceInstructions.Unknown
@@ -194,4 +192,3 @@ class MagicEdenTransaction:
             'buyer': str(self.buyer_address),
             'type': self.type
         }
-
