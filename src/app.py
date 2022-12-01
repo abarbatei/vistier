@@ -2,6 +2,7 @@
 import os
 
 import yaml
+import solana.exceptions
 from flask import Flask, request
 from dotenv import load_dotenv
 from waitress import serve
@@ -53,12 +54,17 @@ async def wallet_status():
         response['status'] = "error"
         response['content'] = " ".join(e for e in e.args)
         status_code = 500
+    except solana.exceptions.SolanaRpcException as e:
+        response['status'] = "error"
+        response['content'] = "Client error '429 Too Many Requests' for endpoint url"
+        status_code = 429
     except Exception:
         response['status'] = "error"
         response['content'] = "Unexpected internal error"
         status_code = 500
         logger.exception(f"Error while parsing contract address: {contract_address} and with cmids: {candy_machine_ids}")
 
+    logger.info(f"response: {response}")
     return response, status_code, {'Content-Type': 'application/json; charset=utf-8'}
 
 

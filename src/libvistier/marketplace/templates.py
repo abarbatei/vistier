@@ -5,14 +5,12 @@ from solana.publickey import PublicKey
 
 
 class MarketplaceInstructions:
-    Listing = "List"
     Sale = "Sale"
-    Buy = "Buy"
-    Deposit = "Deposit"
-    CancelBuy = "CancelBuy"
     CancelSell = "CancelSell"
-    Revoke = "Revoke"
-    Withdraw = "Withdraw"
+    PlaceOffer = "PlaceOffer"
+    CancelOffer = "CancelOffer"
+    Listing = "Listing"
+    CancelListing = "CancelListing"
     Unknown = "Unknown"
 
 

@@ -37,9 +37,10 @@ class MagicEdenTransaction:
         self._process_logs()
         self._determine_transaction_type()
 
+        self.seller_address = None
+        self.buyer_address = None
+
         if self.is_sale() or self.is_listing():
-            self.seller_address = None
-            self.buyer_address = None
             self._set_participants()
 
     @property
@@ -127,6 +128,8 @@ class MagicEdenTransaction:
 
         has_execute_sell = False
         has_sell = False
+        has_cancel_buy = False
+        has_buy = False
         price = None
         for execution in self.executed_instructions:
             # in some cases the price is printed in a Sell in others in a CloseAccount
@@ -136,6 +139,10 @@ class MagicEdenTransaction:
                 has_execute_sell = True
             if execution['instruction'] == "Sell":
                 has_sell = True
+            if execution['instruction'] == "CancelBuy":
+                has_cancel_buy = True
+            if execution['instruction'] == "Buy":
+                has_buy = True
 
         self.price_lamports = price
 
@@ -146,6 +153,13 @@ class MagicEdenTransaction:
                 ins_0 = self.executed_instructions[0]
                 if ins_0['instruction'] == "Sell":
                     self.type = MarketplaceInstructions.Listing
+        elif has_cancel_buy:
+            self.type = MarketplaceInstructions.CancelOffer
+        elif has_buy:
+            if len(self.executed_instructions) == 1:
+                ins_0 = self.executed_instructions[0]
+                if ins_0['instruction'] == "Buy":
+                    self.type = MarketplaceInstructions.PlaceOffer
         else:
             self.type = MarketplaceInstructions.Unknown
 
@@ -188,7 +202,7 @@ class MagicEdenTransaction:
             'price': self.price_lamports,
             'creator_fee_paid': self.creators_fee_lamports,
             'market_fee_paid': self.marketplace_fee_lamports,
-            'seller': str(self.seller_address),
-            'buyer': str(self.buyer_address),
+            'seller': str(self.seller_address) if self.seller_address else None,
+            'buyer': str(self.buyer_address) if self.buyer_address else None,
             'type': self.type
         }
