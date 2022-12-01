@@ -23,10 +23,8 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def get_logger(name, file_name=None):
+def get_logger(name):
 
-    if not file_name:
-        file_name = 'debug_log.txt'
     logger = logging.getLogger(name)
 
     if logger.hasHandlers():
@@ -38,12 +36,6 @@ def get_logger(name, file_name=None):
     stdout_handler.setLevel(logging.INFO)
     stdout_handler.setFormatter(CustomFormatter())
 
-    formatter = logging.Formatter('%(asctime)s [%(levelname)7s][%(name)s]: %(message)s')
-    file_handler = logging.FileHandler(file_name, encoding='utf8')
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
-
-    logger.addHandler(file_handler)
     logger.addHandler(stdout_handler)
 
     return logger
