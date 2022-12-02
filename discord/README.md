@@ -17,7 +17,7 @@ VISTIER_API_URL = "http://127.0.0.1"
 VISTIER_API_PORT = 5000
 ``
 
-Bot can be easely extended to provide any gating via royalties paid or other fee related option.
+Bot can be easily extended to provide any gating via royalties paid or other fee related option.
 
 ### Discord description
 ```POC (Prof of concept) bot that helps by querying Vistier API in order to find if a given address has specific NFTs and how much royalty they paid for it.```
@@ -54,7 +54,7 @@ For easy debug/development the following are recommended:
     - Add Reactions
     - Use Slash Commands
 
-Bot add URL: https://discord.com/api/oauth2/authorize?client_id=1043535437240729651&permissions=534723947584&scope=bot
+Bot permission number: 534723947584
 
 # Examples
 
