@@ -26,7 +26,7 @@ TODO lib setup + server setup + docker setup + discord setup
 ### Algorithm
 The algorithm for Vistier logic is shown in the following diagram
 
-![img](resources/vistier-algorithm.png)
+![img](resources/vistier-algorithm-white.png)
 
 There are 2 entry points into the API that differ in input and functionality:
 1. when a wallet address is provided
