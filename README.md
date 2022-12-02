@@ -19,7 +19,66 @@ can be surprisingly fast.
 
 ## Setup
 
-TODO lib setup + server setup + docker setup + discord setup
+The project itself has several components each with its different setup.
+
+### Setup Vistier code API 
+If you wish to use Vistier API in code, it is enough to copy `libvistier` and install its requirements:
+
+```shell
+cd src/libvistier/
+pip install -r requirements.txt
+```
+
+### Setup Vistier API server
+You can also setup and run a Vistier API as a flask server. Simply run the pip install on its requirements. 
+It will also install the dependencies for `libvistier`.
+
+```shell
+cd /src
+pip install -r requirements.txt
+```
+Then run by calling `python3 app.py`.
+
+The server is also configurable. Configurations allow to increase the efficiency/speed of the API
+by leveraging hardware/resources.
+
+Configurations are set in the `src/config.yaml`:
+```yaml
+# how many transactions to process, backwards, looking for escrow TXs
+ESCROW_TX_TO_PROCESS: 150
+
+# the number of workers processing the above ESCROW_TX_TO_PROCESS, each being given an equal share
+ESCROW_TX_PROCESSING_WORKERS: 1
+
+# an extra safe, hard limit of how many TX to allow. It is a limiter to the above one
+ESCROW_MAX_TX_TO_PROCESS: 1000
+
+# how many transactions to process, backwards, looking for sales TXs per NFT (a wallet can hold many NFTs)
+SALES_TX_TO_PROCESS_PER_NFT: 100
+
+# the number of workers processing the above SALES_TX_TO_PROCESS_PER_NFT, each being given an equal share
+SALES_TX_PROCESSING_WORKERS: 1
+
+# an extra safe, hard limit of how many TX to allow. It is a limiter to the above SALES_TX_TO_PROCESS_PER_NFT
+SALES_NFT_MAX_TX_TO_PROCESS: 1000
+
+# how many NFTs belonging to the same collection to be, at max, processed. If there are more than this number
+# of NFTs, although they will not be processed they are noted as belonging to the wallet
+SALES_NFT_MAX_TO_INSPECT: 10
+```
+The entire efficiency of the system is basically based on the Solana RPC endpoint.
+This is set up in the `src/.env` file. An example is provided in `src/.env.example`
+
+### Setup docker server
+You can also build the Vistier API server in a docker container
+For building the Docker container locally run:
+```shell
+cd /src
+docker build .
+```
+For convenience, the flask server has also been deployed as a docker container.
+You can find it here: https://hub.docker.com/r/abadon42/vistier
+
 
 ## Architecture
 
@@ -37,6 +96,11 @@ identified which belong to the targeted collection and subsequently processed fo
    - only payment/royalty information portraying to that TX is processed and returned.
    - if no treasury address is provided, then 
    - method `libvistier.api_process_signature`
+
+### Discord server
+
+To highlight the utility of Vistier API a Discord was built. 
+A detailed description on the server and setting it up [can be found here](./discord/README.md)
 
 ### Output
 
