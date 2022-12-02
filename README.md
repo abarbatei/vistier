@@ -96,15 +96,46 @@ identified which belong to the targeted collection and subsequently processed fo
    - only payment/royalty information portraying to that TX is processed and returned.
    - if no treasury address is provided, then 
    - method `libvistier.api_process_signature`
-
-### Discord server
-
-To highlight the utility of Vistier API a Discord was built. 
-A detailed description on the server and setting it up [can be found here](./discord/README.md)
-
+   
 ### Output
 
-TODO discuss output
+API `api_process_signature` returns:
+```yaml
+{
+    "block_time": <on chain block time of transaction>,
+    "buyer": <buyer address>,
+    "creator_fee_paid": <creator fee paid (lamports)>,
+    "market_fee_paid": <marketplace fee paid (lamports)>,
+    "mint": <NFT mint address>,
+    "name": <the NFT name>,
+    "price": <price paid (or listed) for NFT (lamports)>,
+    "seller": <the seller address>,
+    "signature": <the transsaction signature hash>,
+    "source": <the name of the marketplace program that executed the transaction>,
+    "type": <transaction type>
+}
+```
+
+API `api_search_wallet_for_nfts` returns:
+```yaml
+{
+    "creator_fee_percent_on_sale": <creator fee as percent>,
+    "fees_on_owned_nfts": {
+        "creator": <creator fees paid for all NFTs owned by this address>,
+        "marketplace": <marketplace fees paid for all NFTs owned by this address>,
+        "total": <total creator + marketplace paid fees>
+    },
+    "owned_nfts": {  <list of NFTs owned by the address from the targeted collection> 
+        <NFT mint address>: <NFT name>
+        ...
+    },
+    "owned_nfts_count": <count of owned_nfts>,
+    "owner_address": <wallet address belonging to the owner>,
+    "transactions": [ <list of sale transactions for the owned NFTs>
+       <transaction data is the same as indicated by api_process_signature above>
+    ]
+}
+```
 
 ### Examples
 
@@ -190,7 +221,13 @@ _CMID_: 71ghWqucipW661X4ht61qvmc3xKQGMBGZxwSDmZrYQmf (Shadowy Super Coder collec
 }
 ```
 
+### Discord server
 
+To highlight the utility of Vistier API a Discord was built. 
+A detailed description on the server and setting it up [can be found here](./discord)
 
+## License 
+
+This project is licensed under the terms of the MIT license.
 
 
