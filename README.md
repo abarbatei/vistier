@@ -33,8 +33,9 @@ There are 2 entry points into the API that differ in input and functionality:
    - all NFTs containing in the wallet and all escrowed NFTs are collected, 
 identified which belong to the targeted collection and subsequently processed for royalty payment information.
    - method: `libvistier.api_search_wallet_for_nfts`
-2. when a TX is provided
+2. when a TX is provided and, optional, the treasury addresses 
    - only payment/royalty information portraying to that TX is processed and returned.
+   - if no treasury address is provided, then 
    - method `libvistier.api_process_signature`
 
 ### Output
@@ -113,7 +114,7 @@ _CMID_: 71ghWqucipW661X4ht61qvmc3xKQGMBGZxwSDmZrYQmf (Shadowy Super Coder collec
 {
     "block_time": 1648153058,
     "buyer": "efmNnD49nYvpAUoaz9Jadzrz14Xw1cauVSJhquhJpLE",
-    "creator_fee_paid": 0,
+    "creator_fee_paid": 3749500000,
     "market_fee_paid": 1499800000,
     "mint": "F4WhvqWGGxCKM88Sdoxw57R8sQMBeh5W8NWuKZwEL6L9",
     "name": "Shadowy Super Coder #3943",

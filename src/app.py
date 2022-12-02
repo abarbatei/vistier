@@ -75,9 +75,8 @@ async def marketplace_signature(signature):
         "content": dict()
     }
     try:
-        collection_treasuries = request.args.getlist('treasury')
         response['status'] = "ok"
-        response['content'] = await api_process_signature(signature, collection_treasuries)
+        response['content'] = await api_process_signature(signature)
         status_code = 200
     except Exception:
         response['status'] = "error"

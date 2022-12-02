@@ -125,14 +125,21 @@ async def get_market_tx(solana_client, tx_sig: Signature, nft_treasuries: List[s
     return
 
 
-async def api_process_signature(sig: str, nft_treasuries: List[str]):
+async def api_process_signature(sig: str):
     solana_client = get_client()
     solana_async_client = await get_async_client()
-    result = await get_market_tx(solana_async_client, Signature.from_string(sig), nft_treasuries)
+    result = await get_market_tx(solana_async_client, Signature.from_string(sig), list())
     if result:
         if result.nft_mint:
             nft_metadata = nfts.get_metadata(solana_client, result.nft_mint)
             result.sold_nft_name = nft_metadata['data']['name']
+            creators = nft_metadata['data']['creators']
+            if len(creators) == 1:
+                nft_treasuries = creators
+            else:
+                nft_treasuries = [c for c in creators[1:]]
+            result.calculate_fees(nft_treasuries)
+
         return result.to_dict()
 
     response = marketplace.empty_marketplace_data_dict()
