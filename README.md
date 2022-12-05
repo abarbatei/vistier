@@ -3,7 +3,7 @@
 ## Overview
 Vistier is a library/API used to process Solana wallets (or transactions) 
 and determine what fees were paid for the acquisition of an NFT to
-both creators (royalties) and marketplace.
+both creators (royalties) and marketplace. 
 
 The API was developed as part of the 2022 **[Creator Monetization Hackathon,
 Future Of Royalties](https://gitcoin.co/issue/29544)** by [Magic Eden](https://magiceden.io/).
@@ -16,6 +16,14 @@ thus allowing for a reward structure
 The API is easily incorporated in any system and does not require any storage mechanism when deployed loically.
 It relies solely on processing transactions and, with enough committed resources, 
 can be surprisingly fast.
+
+This project/repository has several components. 
+- `libvistier`: API for querying royalty, TX and wallet information
+- `flask server`: a server integrating Vistier API 
+- `docker image`: a simple docker image on the above flask server, image can be found [here](https://hub.docker.com/r/abadon42/vistier)
+- `discord bot`: a POC discord bot for highlight one beneficial use case of Vistier API. More on this [here](./discord)
+
+Currently, the API supports Magic Eden transactions, however it is easily extendable to other markets. 
 
 ## Setup
 
@@ -79,6 +87,28 @@ docker build .
 For convenience, the flask server has also been deployed as a docker container.
 You can find it here: https://hub.docker.com/r/abadon42/vistier
 
+## Flask Server 
+
+There are 2 APIs implemented :
+
+`/wallet-status`
+- checks the provided wallet address if it has the specific collection NFTs (indicated by the CMIDs, Candy Machine IDs). If found, will also show how much royalties did the wallet pay for the owned NFTs. 
+- Will also check for escrowed NFTs (i.e. that are not in the wallet at this time). 
+- Requires the following parameters:
+  - **address**: the wallet address to check for NFTs
+  - **cmid**: Candy Machine ID for the targeted collection. 
+    - They are usually the first creator address (if verified). 
+    - Can look it up in Solana explorers or ask the collection creators. 
+    - Parameter can appear multiple times, when there are multiple creators.
+
+`/marketplace-signature/<signature-hash>` 
+- checks and identifies if the signature is a marketplace: Sell, Listing. Cancel Offer or Place Offer. Currently, only MagicEden is supported.
+
+## Discord server
+
+To highlight the utility of Vistier API a Discord was built. 
+A detailed description on the server and setting it up [can be found here](./discord)
+
 
 ## Architecture
 
@@ -110,7 +140,7 @@ API `api_process_signature` returns:
     "name": <the NFT name>,
     "price": <price paid (or listed) for NFT (lamports)>,
     "seller": <the seller address>,
-    "signature": <the transsaction signature hash>,
+    "signature": <the transaction signature hash>,
     "source": <the name of the marketplace program that executed the transaction>,
     "type": <transaction type>
 }
@@ -220,11 +250,6 @@ _CMID_: 71ghWqucipW661X4ht61qvmc3xKQGMBGZxwSDmZrYQmf (Shadowy Super Coder collec
     "type": "Sale"
 }
 ```
-
-### Discord server
-
-To highlight the utility of Vistier API a Discord was built. 
-A detailed description on the server and setting it up [can be found here](./discord)
 
 ## License 
 

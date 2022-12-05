@@ -23,6 +23,32 @@ if platform.system() == 'Windows':
 async def api_search_wallet_for_nfts(settings: dict,
                                      wallet_address: str,
                                      collection_candy_machine_ids: List[str]) -> dict:
+    """
+    Searches the wallet address for NFTs belonging to the collection indicated by the Candy Machine IDs
+    using the specified settings.
+    Return format:
+    {
+        "creator_fee_percent_on_sale": <creator fee as percent>,
+        "fees_on_owned_nfts": {
+            "creator": <creator fees paid for all NFTs owned by this address>,
+            "marketplace": <marketplace fees paid for all NFTs owned by this address>,
+            "total": <total creator + marketplace paid fees>
+        },
+        "owned_nfts": {  <list of NFTs owned by the address from the targeted collection>
+            <NFT mint address>: <NFT name>
+            ...
+        },
+        "owned_nfts_count": <count of owned_nfts>,
+        "owner_address": <wallet address belonging to the owner>,
+        "transactions": [ <list of sale transactions for the owned NFTs>
+           <transaction data is the same as indicated by api_process_signature above>
+        ]
+    }
+    :param settings: a dict containing various configuration and settings for the project
+    :param wallet_address: wallet address to search for NFTs
+    :param collection_candy_machine_ids: IDs of the collection whose NFTs we are searching for in the wallet address
+    :return: a dict containing information on all the found NFTs (in wallet and escrowed)
+    """
 
     solana_client = get_client()
 
@@ -125,7 +151,27 @@ async def get_market_tx(solana_client, tx_sig: Signature, nft_treasuries: List[s
     return
 
 
-async def api_process_signature(sig: str):
+async def api_process_signature(sig: str) -> dict:
+    """
+    Processes a transaction by signature hash and extracts what information it can. It also classifies the TX into
+    type (Sale, Listing, Place Offer and Cancel Offer).
+    Return format:
+    {
+        "block_time": <on chain block time of transaction>,
+        "buyer": <buyer address>,
+        "creator_fee_paid": <creator fee paid (lamports)>,
+        "market_fee_paid": <marketplace fee paid (lamports)>,
+        "mint": <NFT mint address>,
+        "name": <the NFT name>,
+        "price": <price paid (or listed) for NFT (lamports)>,
+        "seller": <the seller address>,
+        "signature": <the transaction signature hash>,
+        "source": <the name of the marketplace program that executed the transaction>,
+        "type": <transaction type>
+    }
+    :param sig: the signature hash of the transaction to process
+    :return: a dict with the transaction data
+    """
     solana_client = get_client()
     solana_async_client = await get_async_client()
     result = await get_market_tx(solana_async_client, Signature.from_string(sig), list())
