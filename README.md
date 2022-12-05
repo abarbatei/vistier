@@ -17,6 +17,8 @@ The API is easily incorporated in any system and does not require any storage me
 It relies solely on processing transactions and, with enough committed resources, 
 can be surprisingly fast.
 
+A high level presentation of the project is available here: [Solana Vistier API](resources/Solana%20Vistier%20API.pdf)
+
 This project/repository has several components. 
 - `libvistier`: API for querying royalty, TX and wallet information
 - `flask server`: a server integrating Vistier API 
@@ -124,7 +126,6 @@ identified which belong to the targeted collection and subsequently processed fo
    - method: `libvistier.api_search_wallet_for_nfts`
 2. when a TX is provided and, optional, the treasury addresses 
    - only payment/royalty information portraying to that TX is processed and returned.
-   - if no treasury address is provided, then 
    - method `libvistier.api_process_signature`
    
 ### Output
